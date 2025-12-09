@@ -355,9 +355,11 @@ sub create_user {
     my $username = delete $options{username}
       or croak "username needs to be specified for create_user";
 
+    my $database = $self->plugin_database($self->db_connection_name);
+
     # password column might not be nullable so set to empty since we fail
     # auth attempts for empty passwords anyway
-    my $ret = $self->database->quick_insert( $self->users_table,
+    my $ret = $database->quick_insert( $self->users_table,
         { $self->users_username_column => $username, password => '', %options }
     );
     return $ret ? $self->get_user_details($username) : undef;
@@ -375,7 +377,7 @@ sub get_user_details {
       unless defined $username;
 
     # Get our database handle and find out the table and column names:
-    my $database = $self->database;
+    my $database = $self->plugin_database($self->db_connection_name);
 
     # Look up the user, 
     my $user = $database->quick_select(
@@ -396,7 +398,7 @@ sub get_user_details {
 sub get_user_roles {
     my ($self, $username) = @_;
 
-    my $database = $self->database;
+    my $database = $self->plugin_database($self->db_connection_name);
 
     # Get details of the user first; both to check they exist, and so we have
     # their ID to use.
